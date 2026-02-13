@@ -1,3 +1,8 @@
+/**
+ * Server-side auth redirects. Only used when running with `next start` (SSR).
+ * Disabled for static export (output: 'export') – auth is enforced client-side
+ * in app/page.tsx, app/dashboard/layout.tsx, and app/login/page.tsx.
+ */
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 

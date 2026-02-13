@@ -4,12 +4,10 @@ Freight broker / carrier dashboard for UnieWMS.
 
 ## Deploying to AWS Amplify
 
-The app is a **Next.js SSR** app. The repo includes an `amplify.yml` that matches [AWS’s Next.js SSR build spec](https://docs.aws.amazon.com/amplify/latest/userguide/deploy-nextjs-app.html) (`baseDirectory: .next`).
+The app is built as a **static export** (`output: 'export'` in `next.config.js`). Amplify serves the `out/` folder as static files—no Node/SSR required, so it works with Amplify’s default static hosting.
 
-**If the site shows “page can’t be found”:** In Amplify Console the app must use **Next.js (SSR)** / **WEB_COMPUTE**, not static hosting.  
-**App settings → Build settings** (or **Hosting**) → ensure the framework is **Next.js** so Amplify runs the Node server instead of serving `.next` as static files.
+- **Build:** `npm run build` produces the `out/` directory.
+- **amplify.yml** sets `baseDirectory: out` and `files: "**/*"`.
+- Auth redirects (e.g. /dashboard → /login when not logged in) run **client-side** in the app.
 
-**In Amplify Console:**
-
-- **Environment variables:** e.g. `NEXT_PUBLIC_API_BASE_URL` = `https://api.uniewms.com/api/v1`
-- **Framework:** Next.js (SSR) / WEB_COMPUTE (required for the site to work)
+**In Amplify Console:** set **Environment variables** if needed (e.g. `NEXT_PUBLIC_API_BASE_URL`).

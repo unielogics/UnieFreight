@@ -1,9 +1,6 @@
-# UnieFreight – Amplify build spec (Next.js SSR)
-# See: https://docs.aws.amazon.com/amplify/latest/userguide/deploy-nextjs-app.html
-#
-# Important: In Amplify Console, the app must be set to Next.js (SSR) / WEB_COMPUTE.
-# If the app is set to "Static" hosting, Amplify will serve .next as static files
-# and the site will show "page can't be found".
+# UnieFreight – Amplify build spec (static export)
+# next.config.js has output: 'export' → build produces the "out" folder.
+# Amplify serves it as static files (no Node/SSR required).
 #
 # Env vars (Amplify Console → Environment variables):
 #   NEXT_PUBLIC_API_BASE_URL = https://api.uniewms.com/api/v1 (or your API URL)
@@ -16,10 +13,10 @@ frontend:
         - echo "Build environment ready"
     build:
       commands:
-        - echo "Starting Next.js build..."
+        - echo "Starting Next.js static export..."
         - npm run build
   artifacts:
-    baseDirectory: .next
+    baseDirectory: out
     files:
       - "**/*"
   cache:

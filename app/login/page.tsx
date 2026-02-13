@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Truck, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react'
-import { login } from '@/lib/api/auth'
+import { getToken, login } from '@/lib/api/auth'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
+  useEffect(() => {
+    if (getToken()) router.replace('/dashboard')
+  }, [router])
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
