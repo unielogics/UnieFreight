@@ -210,6 +210,28 @@ export default function JobDetailPage() {
           </div>
         </div>
 
+        <div className="mt-6 rounded border border-gray-200 bg-gray-50 px-4 py-3">
+          <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">Load summary</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div className="rounded border border-gray-100 bg-white px-3 py-2">
+              <span className="text-gray-500 font-medium">Pallets</span>
+              <div className="font-medium text-gray-900">{spec.palletCount != null ? spec.palletCount : (job.type === 'LTL' ? 1 : '—')}</div>
+            </div>
+            <div className="rounded border border-gray-100 bg-white px-3 py-2">
+              <span className="text-gray-500 font-medium">Clients</span>
+              <div className="font-medium text-gray-900">{spec.clientCount != null ? spec.clientCount : '—'}</div>
+            </div>
+            <div className="rounded border border-gray-100 bg-white px-3 py-2">
+              <span className="text-gray-500 font-medium">SKUs</span>
+              <div className="font-medium text-gray-900">{spec.skuCount != null ? spec.skuCount : '—'}</div>
+            </div>
+            <div className="rounded border border-gray-100 bg-white px-3 py-2">
+              <span className="text-gray-500 font-medium">Boxes</span>
+              <div className="font-medium text-gray-900">{spec.totalBoxes != null ? spec.totalBoxes : (spec.boxesInPallet != null ? spec.boxesInPallet : '—')}</div>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           {spec.boxesInPallet != null && (
             <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
@@ -240,12 +262,6 @@ export default function JobDetailPage() {
             <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
               <span className="text-gray-500 font-medium">Deliver by</span>
               <div className="font-medium text-gray-900">{deliverBy}</div>
-            </div>
-          )}
-          {spec.palletCount != null && job.type === 'FTL' && (
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
-              <span className="text-gray-500 font-medium">Pallets</span>
-              <div className="font-medium text-gray-900">{spec.palletCount}</div>
             </div>
           )}
         </div>

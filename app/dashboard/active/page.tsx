@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Package, Truck, Loader2, ExternalLink, Settings2, X, Mail, Send } from 'lucide-react'
+import { Package, Truck, Loader2, ExternalLink, Settings2, X, Mail, Send, FileDown } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { fetchMailbox, sendMailboxEmail } from '@/lib/api/mailbox'
 import { format } from 'date-fns'
@@ -21,6 +21,54 @@ const CARRIER_STATUS_OPTIONS = [
   { value: 'in_transit', label: 'In transit' },
   { value: 'delivered', label: 'Delivered' },
 ] as const
+
+/** System-regulated pickup time options: XX:XX AM/PM only (e.g. 09:00 AM, 02:30 PM). */
+function buildProposedPickupTimeOptions(): string[] {
+  const options: string[] = []
+  const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  const minutes = ['00', '15', '30', '45']
+  for (const period of ['AM', 'PM'] as const) {
+    for (const h of hours) {
+      const hourStr = h === 12 ? '12' : String(h).padStart(2, '0')
+      for (const m of minutes) {
+        options.push(`${hourStr}:${m} ${period}`)
+      }
+    }
+  }
+  return options
+}
+const PROPOSED_PICKUP_TIME_OPTIONS = buildProposedPickupTimeOptions()
+
+/** Normalize a time string to XX:XX AM/PM for display in the regulated dropdown. */
+function normalizeProposedPickupTime(value: string | undefined): string {
+  if (!value || !value.trim()) return ''
+  const v = value.trim()
+  if (PROPOSED_PICKUP_TIME_OPTIONS.includes(v)) return v
+  const match = v.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?$/i)
+  if (match) {
+    const hour = parseInt(match[1], 10)
+    const min = match[2]
+    const period = (match[3] || '').toUpperCase() || (hour < 12 ? 'AM' : 'PM')
+    const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+    const hourStr = h12 === 12 ? '12' : String(h12).padStart(2, '0')
+    const key = `${hourStr}:${min} ${period === 'AM' ? 'AM' : 'PM'}`
+    if (PROPOSED_PICKUP_TIME_OPTIONS.includes(key)) return key
+  }
+  const asDate = new Date(`1970-01-01T${v}`)
+  if (!Number.isNaN(asDate.getTime())) {
+    const h = asDate.getHours()
+    const m = asDate.getMinutes()
+    const period = h < 12 ? 'AM' : 'PM'
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+    const hourStr = h12 === 12 ? '12' : String(h12).padStart(2, '0')
+    const minStr = String(m).padStart(2, '0')
+    const key = `${hourStr}:${minStr} ${period}`
+    if (PROPOSED_PICKUP_TIME_OPTIONS.includes(key)) return key
+    const closest = PROPOSED_PICKUP_TIME_OPTIONS.find((t) => t.startsWith(`${hourStr}:`))
+    if (closest) return closest
+  }
+  return ''
+}
 
 function formatAddress(addr: Record<string, any> | undefined) {
   if (!addr) return '—'
@@ -41,13 +89,34 @@ function formatPickupBy(job: any): string {
   return '—'
 }
 
+/** Collect unique truck types from profile fleet (Company settings). */
+function getFleetTruckTypes(profile: Record<string, any> | null): string[] {
+  const fleet = profile?.fleetPerState
+  if (!Array.isArray(fleet)) return []
+  const set = new Set<string>()
+  for (const entry of fleet) {
+    const trucks = entry?.trucks
+    if (trucks && typeof trucks === 'object') {
+      for (const key of Object.keys(trucks)) {
+        if (key && typeof key === 'string') set.add(key)
+      }
+    }
+  }
+  return Array.from(set).sort()
+}
+
 export default function ActiveJobsPage() {
   const [offers, setOffers] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Record<string, any> | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('approved')
   const [modalRow, setModalRow] = useState<any | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.getProfile().then(setProfile).catch(() => setProfile(null))
+  }, [])
 
   const loadOffers = useCallback(() => {
     setLoading(true)
@@ -150,6 +219,10 @@ export default function ActiveJobsPage() {
             <thead className="bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase">
               <tr>
                 <th className="px-4 py-3">Job</th>
+                <th className="px-4 py-3">Pallets</th>
+                <th className="px-4 py-3">Clients</th>
+                <th className="px-4 py-3">SKUs</th>
+                <th className="px-4 py-3">Boxes</th>
                 <th className="px-4 py-3">Your offer</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Carrier status</th>
@@ -175,6 +248,18 @@ export default function ActiveJobsPage() {
                       </span>
                       <div className="font-medium text-gray-900 mt-0.5">{job.title || job.reference || jobId || '—'}</div>
                       <div className="text-xs text-gray-500">{job.destinationWarehouseCode} {job.destinationState && `(${job.destinationState})`}</div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 tabular-nums">
+                      {job.spec?.palletCount != null ? job.spec.palletCount : (job.type === 'LTL' ? 1 : '—')}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 tabular-nums">
+                      {job.spec?.clientCount != null ? job.spec.clientCount : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 tabular-nums">
+                      {job.spec?.skuCount != null ? job.spec.skuCount : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 tabular-nums">
+                      {job.spec?.totalBoxes != null ? job.spec.totalBoxes : (job.spec?.boxesInPallet != null ? job.spec.boxesInPallet : '—')}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       ${Number(offer.amount).toFixed(2)} {offer.currency || 'USD'}
@@ -246,6 +331,7 @@ export default function ActiveJobsPage() {
       {modalRow && modalRow.status === 'approved' && (
         <ActiveJobModal
           row={modalRow}
+          truckTypeOptions={getFleetTruckTypes(profile)}
           onSave={(form) => handleSaveTruckDetails(modalRow, form)}
           onClose={() => setModalRow(null)}
           saving={savingId === `${modalRow.job?.warehouseCode}-${modalRow.job?._id || modalRow.job?.id}`}
@@ -257,11 +343,13 @@ export default function ActiveJobsPage() {
 
 function ActiveJobModal({
   row,
+  truckTypeOptions,
   onSave,
   onClose,
   saving,
 }: {
   row: any
+  truckTypeOptions: string[]
   onSave: (form: { truckDescription: string; truckType: string; licensePlate: string; driverName: string; carrierJobStatus: string; carrierProposedPickupDate: string; carrierProposedPickupTime: string }) => void
   onClose: () => void
   saving: boolean
@@ -281,13 +369,36 @@ function ActiveJobModal({
           <h2 className="text-lg font-semibold text-gray-900">
             {job.type} – {job.title || job.reference || 'Job details'}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {(job._id || job.id) && job.warehouseCode && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const id = String(job._id || job.id)
+                  const wh = String(job.warehouseCode)
+                  try {
+                    const blob = await api.getFreightJobBOL(id, wh)
+                    const url = URL.createObjectURL(blob)
+                    window.open(url, '_blank', 'noopener,noreferrer')
+                    setTimeout(() => URL.revokeObjectURL(url), 60000)
+                  } catch (e: any) {
+                    alert(e?.message || 'Failed to download BOL')
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <FileDown className="h-4 w-4" />
+                Download BOL
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -309,6 +420,28 @@ function ActiveJobModal({
               <div className="rounded border border-gray-200 bg-gray-50 px-4 py-3">
                 <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">Shipping to</h3>
                 <p className="text-gray-900 text-sm">{destAddr?.name && `${destAddr.name} — `}{formatAddress(destAddr)}</p>
+              </div>
+            </div>
+
+            <div className="rounded border border-gray-200 bg-gray-50 px-4 py-3">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">Load summary</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 font-medium">Pallets</span>
+                  <div className="font-medium text-gray-900">{spec.palletCount != null ? spec.palletCount : (job.type === 'LTL' ? 1 : '—')}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-medium">Clients</span>
+                  <div className="font-medium text-gray-900">{spec.clientCount != null ? spec.clientCount : '—'}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-medium">SKUs</span>
+                  <div className="font-medium text-gray-900">{spec.skuCount != null ? spec.skuCount : '—'}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-medium">Boxes</span>
+                  <div className="font-medium text-gray-900">{spec.totalBoxes != null ? spec.totalBoxes : (spec.boxesInPallet != null ? spec.boxesInPallet : '—')}</div>
+                </div>
               </div>
             </div>
 
@@ -365,6 +498,7 @@ function ActiveJobModal({
           <TruckDetailsForm
             job={job}
             row={row}
+            truckTypeOptions={truckTypeOptions}
             onSave={onSave}
             onCancel={onClose}
             saving={saving}
@@ -494,12 +628,14 @@ function ThreadChat({
 function TruckDetailsForm({
   job,
   row,
+  truckTypeOptions,
   onSave,
   onCancel,
   saving,
 }: {
   job: any
   row?: any
+  truckTypeOptions: string[]
   onSave: (form: { truckDescription: string; truckType: string; licensePlate: string; driverName: string; carrierJobStatus: string; carrierProposedPickupDate: string; carrierProposedPickupTime: string }) => void
   onCancel: () => void
   saving: boolean
@@ -512,7 +648,12 @@ function TruckDetailsForm({
   const [carrierProposedPickupDate, setCarrierProposedPickupDate] = useState(
     job.carrierProposedPickupDate ? format(new Date(job.carrierProposedPickupDate), 'yyyy-MM-dd') : ''
   )
-  const [carrierProposedPickupTime, setCarrierProposedPickupTime] = useState(job.carrierProposedPickupTime ?? '')
+  const [carrierProposedPickupTime, setCarrierProposedPickupTime] = useState(() =>
+    normalizeProposedPickupTime(job.carrierProposedPickupTime ?? '')
+  )
+  const truckTypeSelectOptions = [...truckTypeOptions]
+  if (truckType && !truckTypeOptions.includes(truckType)) truckTypeSelectOptions.push(truckType)
+  truckTypeSelectOptions.sort()
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
@@ -533,13 +674,19 @@ function TruckDetailsForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-0.5">Truck type</label>
-          <input
-            type="text"
+          <select
             value={truckType}
             onChange={(e) => setTruckType(e.target.value)}
-            placeholder="e.g. Dry van, Flatbed"
             className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
-          />
+          >
+            <option value="">— Select vehicle —</option>
+            {truckTypeSelectOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+          {truckTypeOptions.length === 0 && (
+            <p className="text-xs text-amber-600 mt-0.5">Add vehicles in Settings → Company (Fleet) to select here.</p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-0.5">License plate</label>
@@ -583,14 +730,18 @@ function TruckDetailsForm({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-0.5">Propose pickup time</label>
-          <input
-            type="text"
+          <label className="block text-xs font-medium text-gray-600 mb-0.5">Proposed pickup time</label>
+          <select
             value={carrierProposedPickupTime}
             onChange={(e) => setCarrierProposedPickupTime(e.target.value)}
-            placeholder="e.g. 9:00 AM, 14:00"
             className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
-          />
+          >
+            <option value="">— Select time —</option>
+            {PROPOSED_PICKUP_TIME_OPTIONS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-0.5">Format: XX:XX AM/PM (e.g. 09:00 AM, 02:30 PM)</p>
         </div>
       </div>
       <div className="flex gap-2 mt-4">

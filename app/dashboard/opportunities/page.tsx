@@ -180,6 +180,10 @@ export default function OpportunitiesPage() {
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Title / Reference</th>
                 <th className="px-4 py-3">Destination</th>
+                <th className="px-4 py-3">Pallets</th>
+                <th className="px-4 py-3">Clients</th>
+                <th className="px-4 py-3">SKUs</th>
+                <th className="px-4 py-3">Boxes</th>
                 <th className="px-4 py-3">Created</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
@@ -210,6 +214,18 @@ export default function OpportunitiesPage() {
                         <span className="text-gray-500">({job.destinationState})</span>
                       )}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 tabular-nums">
+                    {job.spec?.palletCount != null ? job.spec.palletCount : (job.type === 'LTL' ? 1 : '—')}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 tabular-nums">
+                    {job.spec?.clientCount != null ? job.spec.clientCount : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 tabular-nums">
+                    {job.spec?.skuCount != null ? job.spec.skuCount : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 tabular-nums">
+                    {job.spec?.totalBoxes != null ? job.spec.totalBoxes : (job.spec?.boxesInPallet != null ? job.spec.boxesInPallet : '—')}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
                     {job.createdAt ? format(new Date(job.createdAt), 'MMM d, yyyy') : '—'}

@@ -2,15 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Loader2, Package, Truck, ExternalLink } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Loader2, Package, Truck, ExternalLink, Lock } from 'lucide-react'
 import { api } from '@/lib/api/client'
+import { getUser } from '@/lib/api/auth'
 import { format } from 'date-fns'
 
 export default function FinancialReportPage() {
+  const router = useRouter()
+  const user = getUser()
+  const isSubUser = !!user?.isSubUser
   const [offers, setOffers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isSubUser) {
+      router.replace('/dashboard')
+      return
+    }
+  }, [isSubUser, router])
+
+  useEffect(() => {
+    if (isSubUser) return
     let cancelled = false
     setLoading(true)
     api.listMyOffers({ status: 'approved' })
@@ -18,9 +31,19 @@ export default function FinancialReportPage() {
       .catch(() => { if (!cancelled) setOffers([]) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [isSubUser])
 
   const totalRevenue = offers.reduce((sum: number, o: any) => sum + Number(o.amount || 0), 0)
+
+  if (isSubUser) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-600">
+        <Lock className="w-10 h-10 text-amber-500" />
+        <p className="font-medium">Billing and financial data are not available for sub accounts.</p>
+        <p className="text-sm">Redirecting…</p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

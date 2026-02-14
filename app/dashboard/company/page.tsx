@@ -18,6 +18,8 @@ const PREDEFINED_TRUCK_TYPES = [
   'Straight Truck',
   'Step Deck',
   'Lowboy',
+  'Semi (power only)',
+  'Sprinter Van',
 ] as const
 const OTHER_TRUCK_LABEL = 'Other'
 

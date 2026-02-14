@@ -99,4 +99,26 @@ export const api = {
     request<{ data: any[] }>('/freight-carrier/business-files'),
   uploadBusinessFile: (body: { type: string; url?: string; fileId?: string; expiresAt?: string }) =>
     request('/freight-carrier/business-files', { method: 'POST', body: JSON.stringify(body) }),
+  listSubUsers: () =>
+    request<{ data: { email: string; createdAt?: string }[] }>('/freight-carrier/sub-users'),
+  createSubUser: (body: { email: string; password: string }) =>
+    request<{ id: string; email: string; isSubUser: boolean }>('/freight-carrier/sub-users', { method: 'POST', body: JSON.stringify(body) }),
+  /** Download BOL (Bill of Lading) PDF for an awarded job. Returns blob for opening or saving. */
+  async getFreightJobBOL(jobId: string, warehouseCode: string): Promise<Blob> {
+    if (typeof window === 'undefined') return Promise.reject(new Error('API not available'))
+    const token = getToken()
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    const q = new URLSearchParams({ warehouseCode })
+    const res = await fetch(`${API_BASE_URL}/freight-carrier/jobs/${encodeURIComponent(jobId)}/bol?${q}`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error((data as any).error || (data as any).message || 'Failed to download BOL')
+    }
+    return res.blob()
+  },
 }

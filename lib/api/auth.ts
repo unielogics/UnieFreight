@@ -10,6 +10,8 @@ export interface FreightCarrierUser {
   grade?: number
   gradeStatus?: string
   profileImageUrl?: string
+  /** When true, user cannot access billing/financial data (sub user). */
+  isSubUser?: boolean
 }
 
 export interface LoginResponse {
