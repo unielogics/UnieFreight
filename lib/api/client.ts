@@ -46,12 +46,15 @@ export const api = {
     request(`/freight-carrier/jobs/${jobId}/offer`, { method: 'PATCH', body: JSON.stringify(body) }),
   cancelOffer: (jobId: string) =>
     request(`/freight-carrier/jobs/${jobId}/offer/cancel`, { method: 'POST' }),
-  listMyOffers: (params?: { status?: string }) => {
+  listMyOffers: (params?: { status?: string; paymentStatus?: string }) => {
     const q = new URLSearchParams()
     if (params?.status) q.set('status', params.status)
+    if (params?.paymentStatus) q.set('paymentStatus', params.paymentStatus)
     const qs = q.toString()
     return request<{ data: any[]; total: number }>(`/freight-carrier/offers${qs ? `?${qs}` : ''}`)
   },
+  createOfferDispute: (body: { warehouseCode: string; freightOfferId: string; reasonCategory: string; reason?: string }) =>
+    request<Record<string, any>>('/freight-carrier/offers/dispute', { method: 'POST', body: JSON.stringify(body) }),
   updateActiveJobDetails: (
     warehouseCode: string,
     jobId: string,

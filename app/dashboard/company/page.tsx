@@ -230,7 +230,7 @@ export default function CompanyPage() {
       {isRestricted && (
         <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0" />
-          Your account is under review. You cannot access new job opportunities until your grade is restored.
+          Your account is under review. You cannot access new jobs until your grade is restored.
         </div>
       )}
 

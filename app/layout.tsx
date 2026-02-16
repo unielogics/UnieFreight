@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'UnieFreight – Freight carrier dashboard',
-  description: 'Find opportunities and manage your freight quotes',
+  description: 'Find jobs and manage your freight quotes',
   icons: { icon: '/favicon.svg' },
 }
 

@@ -8,7 +8,7 @@ export default function HomePage() {
   const router = useRouter()
   useEffect(() => {
     const token = getToken()
-    if (token) router.replace('/dashboard')
+    if (token) router.replace('/dashboard/scheduled')
     else router.replace('/login')
   }, [router])
   return (

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Truck, Briefcase, ListTodo, User, LogOut, BarChart3, Mail, Bell, ChevronDown, Building2, Users } from 'lucide-react'
+import { Truck, Briefcase, ListTodo, User, LogOut, BarChart3, Mail, Bell, ChevronDown, Building2, Users, Calendar } from 'lucide-react'
 import { getToken, getUser, logout } from '@/lib/api/auth'
 import { api } from '@/lib/api/client'
 
@@ -84,7 +84,7 @@ export default function DashboardLayout({
       return
     }
     if (user?.gradeStatus === 'under_review' || user?.gradeStatus === 'suspended') {
-      // Still show layout but opportunities will be restricted by API
+      // Still show layout; some features may be restricted by API
     }
   }, [router, user])
 
@@ -96,7 +96,7 @@ export default function DashboardLayout({
   const isSubUser = !!user?.isSubUser
   const nav = [
     { href: '/dashboard/opportunities', label: 'Find opportunities', icon: Briefcase },
-    ...(isSubUser ? [] : [{ href: '/dashboard/financial', label: 'Financial Report', icon: BarChart3 }]),
+    { href: '/dashboard/scheduled', label: 'Scheduled jobs', icon: Calendar },
     { href: '/dashboard/active', label: 'Active jobs', icon: ListTodo },
   ]
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -157,7 +157,7 @@ export default function DashboardLayout({
                 type="button"
                 onClick={() => setSettingsOpen((o) => !o)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                  pathname === '/dashboard/profile' || pathname === '/dashboard/company' || pathname === '/dashboard/sub-users' || pathname.startsWith('/dashboard/profile/') || pathname.startsWith('/dashboard/company/')
+                  pathname === '/dashboard/profile' || pathname === '/dashboard/company' || pathname === '/dashboard/sub-users' || pathname === '/dashboard/scheduled' || pathname === '/dashboard/financial' || pathname.startsWith('/dashboard/profile/') || pathname.startsWith('/dashboard/company/')
                     ? 'bg-slate-700 text-white'
                     : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                 }`}
@@ -196,6 +196,16 @@ export default function DashboardLayout({
                       <Building2 className="w-4 h-4" />
                       Company
                     </Link>
+                    {!isSubUser && (
+                      <Link
+                        href="/dashboard/financial"
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700"
+                        onClick={() => setSettingsOpen(false)}
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                        Financial Report
+                      </Link>
+                    )}
                     {!isSubUser && (
                       <Link
                         href="/dashboard/sub-users"

@@ -9,7 +9,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   useEffect(() => {
-    if (getToken()) router.replace('/dashboard')
+    if (getToken()) router.replace('/dashboard/scheduled')
   }, [router])
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -29,7 +29,7 @@ export default function LoginPage() {
         const maxAge = 7 * 24 * 60 * 60 // 7 days
         document.cookie = `uniefreight_token=${encodeURIComponent(data.token)}; path=/; max-age=${maxAge}; SameSite=Lax`
       }
-      router.push('/dashboard')
+      router.push('/dashboard/scheduled')
       router.refresh()
     } catch (err: any) {
       const message = err?.message || 'Login failed'

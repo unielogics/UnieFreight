@@ -12,7 +12,7 @@ export async function fetchMailbox(params?: {
   unreadOnly?: boolean
   limit?: number
   offset?: number
-  context?: 'freight'
+  context?: 'freight' | 'disputes'
   threadId?: string
 }) {
   const query = new URLSearchParams()
@@ -20,6 +20,7 @@ export async function fetchMailbox(params?: {
   if (params?.limit) query.append('limit', String(params.limit ?? 50))
   if (params?.offset) query.append('offset', String(params.offset ?? 0))
   if (params?.context === 'freight') query.append('context', 'freight')
+  if (params?.context === 'disputes') query.append('context', 'disputes')
   if (params?.threadId) query.append('threadId', params.threadId)
   const res = await fetch(`${API_BASE_URL}/mailbox?${query.toString()}`, { headers: authHeaders() })
   if (!res.ok) {

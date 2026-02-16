@@ -69,7 +69,7 @@ export default function SubUsersPage() {
           Sub users
         </h1>
         <p className="text-gray-600 text-sm mt-1">
-          Sub users can use the dashboard for opportunities, active jobs, and messages, but cannot access billing or financial data.
+          Sub users can use the dashboard for jobs, active jobs, and messages, but cannot access billing or financial data.
         </p>
       </div>
 
