@@ -1,14 +1,19 @@
-# UnieFreight - Next.js SSR (matches AWS Amplify doc build spec)
-# Console: Hosting > Framework must be "Next.js - SSR" so the server runs.
-# See DEPLOY.md for full checklist.
+# UnieFreight – Amplify build spec (Next.js SSR)
+# next.config.js does NOT use output: 'export' so dynamic routes like
+# /dashboard/opportunities/[id] work. Build output is .next (SSR).
+#
+# Env vars (Amplify Console → Environment variables):
+#   NEXT_PUBLIC_API_BASE_URL = https://api.uniewms.com/api/v1 (or your API URL)
 version: 1
 frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm ci --cache .npm --prefer-offline
+        - echo "Build environment ready"
     build:
       commands:
+        - echo "Starting Next.js build (SSR)..."
         - npm run build
   artifacts:
     baseDirectory: .next
@@ -18,6 +23,7 @@ frontend:
     paths:
       - .next/cache/**/*
       - node_modules/**/*
+      - .npm/**/*
   environment:
     variables:
       NODE_OPTIONS: --max-old-space-size=4096
