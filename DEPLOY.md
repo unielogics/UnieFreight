@@ -1,6 +1,6 @@
 # UnieFreight – Amplify deployment checklist
 
-If **https://uniefreight.com/dashboard/** shows **404** ("This page can't be found"), the app is not being run as Next.js SSR. Fix it in Amplify Console:
+If the site **shows nothing** (blank white page), or **https://uniefreight.com/dashboard/** shows **404** ("This page can't be found"), the app is almost certainly **not** being run as Next.js SSR. Amplify is serving the build as static files instead of running the Next.js server. Fix it in Amplify Console:
 
 ## 1. Set Framework to Next.js SSR
 
@@ -24,4 +24,4 @@ If **https://uniefreight.com/dashboard/** shows **404** ("This page can't be fou
 
 - Do **not** add a rewrite like "/* → /index.html" for the main app. Next.js SSR handles routing; SPA rewrites break direct links to `/dashboard/`, etc.
 
-After changing Framework and Root directory, run a **full redeploy** (not just a branch redeploy). Then open https://uniefreight.com/dashboard/ again.
+After changing Framework and Root directory, run a **full redeploy** (not just a branch redeploy). Then open https://uniefreight.com/ or https://uniefreight.com/dashboard/ again. If you still see a blank page, try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) or an incognito window in case of cached content.

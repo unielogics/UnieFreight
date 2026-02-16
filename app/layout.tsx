@@ -14,7 +14,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <noscript>
+          <div style={{ padding: 24, textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
+            UnieFreight needs JavaScript to run. Please enable it and refresh.
+          </div>
+        </noscript>
+        {children}
+      </body>
     </html>
   )
 }
