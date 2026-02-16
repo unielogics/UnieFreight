@@ -1,6 +1,6 @@
-# UnieFreight – Amplify build spec (Next.js SSR)
-# next.config.js does NOT use output: 'export' so dynamic routes like
-# /dashboard/opportunities/[id] work. Build output is .next (SSR).
+# UnieFreight – Amplify build spec (static export)
+# next.config.js has output: 'export' → build produces the "out" folder.
+# Amplify serves it as static files (no Node/SSR required).
 #
 # Env vars (Amplify Console → Environment variables):
 #   NEXT_PUBLIC_API_BASE_URL = https://api.uniewms.com/api/v1 (or your API URL)
@@ -13,10 +13,10 @@ frontend:
         - echo "Build environment ready"
     build:
       commands:
-        - echo "Starting Next.js build (SSR)..."
+        - echo "Starting Next.js static export..."
         - npm run build
   artifacts:
-    baseDirectory: .next
+    baseDirectory: out
     files:
       - "**/*"
   cache:
