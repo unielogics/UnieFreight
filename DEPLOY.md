@@ -25,3 +25,7 @@ If the site **shows nothing** (blank white page), or **https://uniefreight.com/d
 - Do **not** add a rewrite like "/* → /index.html" for the main app. Next.js SSR handles routing; SPA rewrites break direct links to `/dashboard/`, etc.
 
 After changing Framework and Root directory, run a **full redeploy** (not just a branch redeploy). Then open https://uniefreight.com/ or https://uniefreight.com/dashboard/ again. If you still see a blank page, try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R) or an incognito window in case of cached content.
+
+---
+
+**If the site worked before and now shows nothing:** The `amplify.yml` in this repo has been simplified to match the official AWS Next.js SSR build spec (preBuild: npm ci; build: npm run build; artifacts: baseDirectory .next). If problems persist, in Amplify Console go to **Build settings** and confirm the **build specification** source is "Use amplify.yml in the repository" and that **Hosting > Framework** is "Next.js - SSR". You can also try temporarily renaming or removing `amplify.yml` from the repo and redeploying so Amplify uses its auto-generated build spec, then compare behavior.
