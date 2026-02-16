@@ -13,7 +13,12 @@ frontend:
     preBuild:
       commands:
         - echo "Build root: $(pwd)"
-        - test -f package.json && echo "package.json name: $(node -p "require('./package.json').name")" || (echo "ERROR: No package.json in build root. Set Root directory to UnieFreight in Amplify." && exit 1)
+        - |
+          if [ ! -f package.json ]; then
+            echo "ERROR - No package.json in build root. Set Root directory to UnieFreight in Amplify."
+            exit 1
+          fi
+          echo "package.json name: $(node -p "require('./package.json').name")"
         - npm ci --cache .npm --prefer-offline
         - echo "PreBuild complete"
     build:
